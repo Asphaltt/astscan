@@ -2,7 +2,6 @@ package astscan
 
 import (
 	"fmt"
-	"go/ast"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -25,8 +24,8 @@ func main() {
 }`
 )
 
-func _print(pkg, fileline, value string, n ast.Node) {
-	fmt.Printf("pkg:%s, fileline:%s, value:%s\n", pkg, fileline, value)
+func _print(item Item) {
+	fmt.Println("item:", item)
 }
 
 func TestFile(t *testing.T) {
@@ -41,7 +40,7 @@ func TestFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := File(tmpFile.Name(), ContainChinese, _print); err != nil {
+	if err := File(tmpFile.Name(), CheckChinese, _print); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -58,7 +57,7 @@ func TestDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Dir(os.TempDir(), ContainChinese, _print); err != nil {
+	if err := Dir(os.TempDir(), CheckChinese, _print); err != nil {
 		t.Fatal(err)
 	}
 }

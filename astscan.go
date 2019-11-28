@@ -13,7 +13,7 @@ import (
 
 var (
 	_callback Callback
-	_contain  Container
+	_check    Checker
 )
 
 func getPos(fset *token.FileSet, pos token.Pos) string {
@@ -31,19 +31,19 @@ func scan(n ast.Node, fset *token.FileSet, pkg string) (ast.Node, bool) {
 	switch v := n.(type) {
 	case *ast.BasicLit:
 		if v.Kind == token.STRING {
-			if _contain(v.Value) {
-				_callback(pkg, getPos(fset, v.ValuePos), v.Value, n)
+			if _check(v.Value) {
+				_callback(Item{pkg, getPos(fset, v.ValuePos), TypeString, v.Value, n})
 			}
 		}
 	case *ast.Comment:
-		if _contain(v.Text) {
-			_callback(pkg, getPos(fset, v.Slash), v.Text, n)
+		if _check(v.Text) {
+			_callback(Item{pkg, getPos(fset, v.Slash), TypeComment, v.Text, n})
 		}
 	}
 	return n, true
 }
 
-func File(file string, contain Container, callback Callback) error {
+func File(file string, contain Checker, callback Callback) error {
 	if err := checkParams(contain, callback); err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func File(file string, contain Container, callback Callback) error {
 	return nil
 }
 
-func Dir(dir string, contain Container, callback Callback) error {
+func Dir(dir string, contain Checker, callback Callback) error {
 	if err := checkParams(contain, callback); err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func Dir(dir string, contain Container, callback Callback) error {
 	return nil
 }
 
-func checkParams(contain Container, callback Callback) error {
+func checkParams(contain Checker, callback Callback) error {
 	if contain == nil {
 		return errors.New("contain cannot be nil")
 	}
@@ -87,6 +87,6 @@ func checkParams(contain Container, callback Callback) error {
 		return errors.New("callback cannot be nil")
 	}
 
-	_contain, _callback = contain, callback
+	_check, _callback = contain, callback
 	return nil
 }
