@@ -7,8 +7,15 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/fatih/astrewrite"
+)
+
+// max depth for scanning dir, you can change it before running Dir
+var (
+	MaxDepth = 7
 )
 
 var (
@@ -43,6 +50,7 @@ func scan(n ast.Node, fset *token.FileSet, pkg string) (ast.Node, bool) {
 	return n, true
 }
 
+// File parses the file and checks the String and Comment on ast.
 func File(file string, check Checker, callback Callback) error {
 	if err := checkParams(check, callback); err != nil {
 		return err
@@ -60,9 +68,20 @@ func File(file string, check Checker, callback Callback) error {
 	return nil
 }
 
+// Dir scans directory with deep iteration firstly, and parses every
+// directory to check the String and Comment on ast. Dir's depth limits
+// by MaxDepth.
 func Dir(dir string, check Checker, callback Callback) error {
 	if err := checkParams(check, callback); err != nil {
 		return err
+	}
+
+	return scanDir(dir, 0)
+}
+
+func scanDir(dir string, depth int) error {
+	if MaxDepth > 0 && depth > MaxDepth {
+		return errors.New("astscan: Dir reaches max depth")
 	}
 
 	fset := token.NewFileSet()
@@ -75,6 +94,20 @@ func Dir(dir string, check Checker, callback Callback) error {
 		astrewrite.Walk(n, func(n ast.Node) (ast.Node, bool) {
 			return scan(n, fset, pkg)
 		})
+	}
+
+	dirs, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, fd := range dirs {
+		if !fd.IsDir() {
+			continue
+		}
+
+		if err := scanDir(filepath.Join(dir, fd.Name()), depth+1); err != nil {
+			return err
+		}
 	}
 	return nil
 }
