@@ -43,8 +43,8 @@ func scan(n ast.Node, fset *token.FileSet, pkg string) (ast.Node, bool) {
 	return n, true
 }
 
-func File(file string, contain Checker, callback Callback) error {
-	if err := checkParams(contain, callback); err != nil {
+func File(file string, check Checker, callback Callback) error {
+	if err := checkParams(check, callback); err != nil {
 		return err
 	}
 
@@ -60,8 +60,8 @@ func File(file string, contain Checker, callback Callback) error {
 	return nil
 }
 
-func Dir(dir string, contain Checker, callback Callback) error {
-	if err := checkParams(contain, callback); err != nil {
+func Dir(dir string, check Checker, callback Callback) error {
+	if err := checkParams(check, callback); err != nil {
 		return err
 	}
 
@@ -79,14 +79,14 @@ func Dir(dir string, contain Checker, callback Callback) error {
 	return nil
 }
 
-func checkParams(contain Checker, callback Callback) error {
-	if contain == nil {
-		return errors.New("contain cannot be nil")
+func checkParams(check Checker, callback Callback) error {
+	if check == nil {
+		return errors.New("check cannot be nil")
 	}
 	if callback == nil {
 		return errors.New("callback cannot be nil")
 	}
 
-	_check, _callback = contain, callback
+	_check, _callback = check, callback
 	return nil
 }
